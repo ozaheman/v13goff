@@ -39,7 +39,38 @@ const ROLE_TABS = {
     'admin': ['status', 'schedule', 'boq', 'rfi', 'materials', 'mom', 'bulletins', 'noc-tracker', 'subcontractors', 'vendor-management', 'long-lead-items', 'tools', 'photos', 'documents', 'uploads', 'forms', 'snags', 'payments', 'inventory', 'budget', 'bim-designer', 'calendar'],
     'manager': ['status', 'schedule', 'boq', 'rfi', 'materials', 'mom', 'bulletins', 'noc-tracker', 'subcontractors', 'vendor-management', 'long-lead-items', 'tools', 'photos', 'documents', 'uploads', 'forms', 'snags', 'payments', 'inventory', 'budget', 'bim-designer', 'calendar'],
     'engineer': ['status', 'schedule', 'boq', 'rfi', 'materials', 'mom', 'bulletins', 'photos', 'documents', 'uploads', 'forms', 'calendar'],
-    'site': ['status', 'schedule', 'boq', 'rfi', 'materials', 'mom', 'bulletins', 'noc-tracker', 'subcontractors', 'vendor-management', 'long-lead-items', 'tools', 'photos', 'documents', 'uploads', 'forms', 'snags', 'payments', 'inventory', 'budget', 'bim-designer', 'calendar'],
+    'site': [
+    'status',
+'project-docs',
+'tender-docs',
+  //'site-docs',  
+    'schedule', 
+    'boq', 
+    'calendar',
+    'rfi', 
+    'materials', 
+    'mom', 
+    
+    'noc', 
+    'subcontractors', 
+    'vendor-management',
+    'vendor-lists',
+    'site-docs',
+    'long-lead',
+    'project-uploads',
+    'bulletin', 
+    //'tools', 
+    //'photos', 
+    //'documents', 
+   // 'uploads', 
+    'forms', 
+    'snag-list', 
+    'payment-list', 
+    'inventory', 
+    'budget', 
+    'bim-designer', 
+    //'calendar'
+    ],
     'client': ['status', 'schedule', 'photos', 'snags',  'bulletins','payments', 'calendar'],
     'designer': ['status', 'schedule', 'rfi', 'materials', 'photos', 'documents', 'bim-designer', 'calendar'],
     'guest': ['status', 'schedule', 'photos']
@@ -554,7 +585,7 @@ async function handleProjectSelect(e) {
       DOMElements.detailsProjectInfo.textContent = `Job: ${project.jobNo} | ${project.clientName}`;
     DOMElements.siteStatusSelect.value = siteData.status || 'Pending Start';
     // Render all modules and galleries
-    /*RfiModule.render(AppState.currentJobNo);
+    RfiModule.render(AppState.currentJobNo);
     MomModule.renderList(AppState.currentJobNo, DOMElements.momList);
     MaterialsModule.render(AppState.currentJobNo);
     BulletinModule.render(AppState.currentJobNo, DOMElements.bulletinFeed);
@@ -573,20 +604,17 @@ SnagListModule.render(AppState.currentJobNo, DOMElements.snagListContainer);
     await renderFileGallery(DOMElements.projectUploadsGallery, 'site', 'project_upload', true);
     
     // FIX: Correctly call renderFileGallery for master documents by category
-    await renderFileGallery(DOMElements.projectDocsGallery, 'master', ['client_details', 'noc_copies', 'letters', 'other_uploads'], false);
-    await renderFileGallery(DOMElements.tenderDocsGallery, 'master', ['tender_documents'], false);
-    await renderFileGallery(DOMElements.vendorListsGallery, 'master', ['vendor_lists'], false); // Assuming 'vendor_lists' is a category
-    
-
-    const schedule = await ScheduleModule.render(AppState.currentJobNo);
-    await renderGanttChart();
-    renderCalendar();
-    renderFloorSelector();
-    if(schedule){ 
-        ToolsModule.renderResourceCalculator(AppState.currentJobNo, { tableBody: document.getElementById('resource-calculator-body')  }, schedule);
-        LongLeadModule.render(schedule, siteData.boq, AppContext);
-    }
-    updateDashboardStats(AppState.currentJobNo);*/
+     //await renderFileGallery(DOMElements.projectDocsGallery, 'master', 'project_doc', false);
+     await renderFileGallery(DOMElements.tenderDocsGallery, 'master', 'tender_doc', true);
+    await renderFileGallery(DOMElements.projectDocsGallery, 'master', ['client_details', 'noc_copies', 'letters', 'other_uploads'], true);
+    await renderFileGallery(DOMElements.tenderDocsGallery, 'master', ['tender_documents'], true);
+    //renderCalendar();
+    // renderFloorSelector();
+    // if(schedule){ 
+        // ToolsModule.renderResourceCalculator(AppState.currentJobNo, { tableBody: document.getElementById('resource-calculator-body')  }, schedule);
+        // LongLeadModule.render(schedule, siteData.boq, AppContext);
+    // }
+    updateDashboardStats(AppState.currentJobNo);
     toggleTabsForView(true);
 }
 async function autoLoadProjectxx(jobNo) {
@@ -815,6 +843,55 @@ async function handleFileUpload(event, type) {
         };
         reader.readAsDataURL(file);
     }
+}
+async function renderFileGalleryzzz(galleryEl, source, type, isDeletable,searchTerm = '') {
+    if(!galleryEl) return;
+    galleryEl.innerHTML = '';
+    
+    // Allow filtering by project or show all for certain views
+     const jobNoFilter = (source === 'master') ? null : AppState.currentJobNo;
+    if (!jobNoFilter && source === 'site') return;
+
+    let files = await window.DB.getFiles(jobNoFilter, source);
+    if (type) {
+        files = files.filter(f => f.type === type);
+    }
+    if (searchTerm) {
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        files = files.filter(f => f.name.toLowerCase().includes(lowerSearchTerm));
+    }
+     files.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+    files.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'thumbnail-container';
+        if (!isDeletable) div.classList.add('read-only');
+        div.dataset.fileId = file.id; // FIX [11]: Add file ID for previewing
+
+        const isImage = file.fileType?.startsWith('image/');
+        let expiryHtml = '';
+        // FIX [2]: Render Expiry Badge
+        if(file.expiryDate) {
+            const expiry = new Date(file.expiryDate);
+            const today = new Date();
+            const soonDate = new Date();
+            soonDate.setDate(today.getDate() + 30);
+            
+            if (expiry < today) {
+                expiryHtml = `<div class="expiry-badge expired">Expired</div>`;
+            } else if (expiry < soonDate) {
+                 expiryHtml = `<div class="expiry-badge soon">Expires Soon</div>`;
+            } else {
+                 expiryHtml = `<div class="expiry-badge active">Active</div>`;
+            }
+        }
+        const captionDate = file.statusDate || new Date(file.timestamp).toISOString().split('T')[0];
+        const caption = `${file.name}<br><small>${captionDate}</small>`;
+        div.innerHTML = (isImage ? `<img src="${file.dataUrl}" class="thumbnail">` : `<div class="file-icon">📄</div>`) + 
+                        `<div class="thumbnail-caption">${caption}:${file.name}</div>` +
+                        (isDeletable ? `<div class="thumbnail-delete-btn" data-id="${file.id}" data-type="${type}">×</div>` : '') +
+                        expiryHtml;
+        galleryEl.appendChild(div);
+    });
 }
 async function renderFileGallery(galleryEl, source, categoryFilters, isDeletable,searchTerm = '') {
     if(!galleryEl) return;
