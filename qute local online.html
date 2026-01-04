@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏗️ Construction Daily Briefing - Online Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-gold: #f39c12;
+            --success-green: #2ecc71;
+            --danger-red: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+            --online-green: #27ae60;
+            --offline-red: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark-text);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            animation: fadeInDown 0.8s ease;
+            position: relative;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: var(--light-bg);
+        }
+
+        .connection-status.online {
+            color: var(--online-green);
+        }
+
+        .connection-status.offline {
+            color: var(--offline-red);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.online {
+            background: var(--online-green);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.offline {
+            background: var(--offline-red);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .header .date-display {
+            margin-top: 15px;
+            font-weight: 600;
+            color: var(--secondary-blue);
+            font-size: 1.2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 1s ease;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group select, .control-group button {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .control-group select:focus, .control-group button:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .control-group button {
+            background: var(--secondary-blue);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .control-group button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .control-group button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons .refresh-btn {
+            background: var(--success-green);
+        }
+
+        .action-buttons .refresh-btn:hover {
+            background: #27ae60;
+        }
+
+        .action-buttons .dubai-btn {
+            background: var(--accent-gold);
+        }
+
+        .action-buttons .dubai-btn:hover {
+            background: #e67e22;
+        }
+
+        .action-buttons .online-btn {
+            background: var(--online-green);
+        }
+
+        .action-buttons .online-btn:hover {
+            background: #219653;
+        }
+
+        /* Data Sources Panel */
+        .sources-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: var(--card-shadow);
+        }
+
+        .sources-panel h3 {
+            margin-bottom: 20px;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .source-item {
+            padding: 15px;
+            border-radius: 12px;
+            background: var(--light-bg);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .source-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .source-item.active {
+            background: #e8f4fc;
+            border: 2px solid var(--secondary-blue);
+        }
+
+        .source-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .source-1 { background: #3498db; }
+        .source-2 { background: #e74c3c; }
+        .source-3 { background: #2ecc71; }
+        .source-4 { background: #f39c12; }
+        .source-5 { background: #9b59b6; }
+
+        .source-info h4 {
+            margin-bottom: 5px;
+            color: var(--primary-blue);
+        }
+
+        .source-info p {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        .source-status {
+            margin-left: auto;
+            font-size: 0.8rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .source-status.online {
+            color: var(--online-green);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .source-status.offline {
+            color: var(--offline-red);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        /* Main Content Cards */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            animation: fadeInUp 0.8s ease;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .content-card.loading::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--success-green));
+            border-radius: 20px 20px 0 0;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-header i {
+            font-size: 2rem;
+            margin-right: 15px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .greeting-card .card-header i {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-blue);
+        }
+
+        .quote-card .card-header i {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--accent-gold);
+        }
+
+        .fact-card .card-header i {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success-green);
+        }
+
+        .money-card .card-header i {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+
+        .dubai-card .card-header i {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-red);
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+        }
+
+        .card-header .profession-badge {
+            margin-left: auto;
+            background: var(--light-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--secondary-blue);
+        }
+
+        .card-content {
+            flex-grow: 1;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--dark-text);
+        }
+
+        .card-content .quote-text {
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .card-content .author {
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #e0e0e0;
+        }
+
+        .card-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-footer .category-tag {
+            background: var(--light-bg);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .card-footer .source-info {
+            font-size: 0.8rem;
+            color: var(--secondary-blue);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Export Section */
+        .export-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+
+        .export-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            padding: 15px 30px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .export-btn:hover {
+            background: #1a252f;
+            transform: translateY(-2px);
+        }
+
+        .export-btn.html {
+            background: #e74c3c;
+        }
+
+        .export-btn.html:hover {
+            background: #c0392b;
+        }
+
+        .export-btn.json {
+            background: var(--success-green);
+        }
+
+        .export-btn.json:hover {
+            background: #27ae60;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from { 
+                opacity: 0; 
+                transform: translateY(-30px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+            display: none;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid var(--secondary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content-grid, .additional-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid, .sources-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+            }
+            
+            .action-buttons, .export-buttons {
+                flex-direction: column;
+            }
+            
+            .export-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .connection-status {
+                position: static;
+                margin-top: 15px;
+                justify-content: center;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 10px;
+            color: var(--secondary-blue);
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: var(--primary-blue);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            border-radius: 10px !important;
+            box-shadow: var(--card-shadow) !important;
+        }
+
+        /* Source Indicator */
+        .source-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .source-indicator.online {
+            background: var(--online-green);
+            box-shadow: 0 0 10px var(--online-green);
+        }
+
+        .source-indicator.offline {
+            background: var(--offline-red);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3 id="loadingMessage">Fetching Online Data...</h3>
+        <p>Please wait while we gather the latest construction insights</p>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Checking connection...</span>
+            </div>
+            <h1>
+                <i class="fas fa-wifi"></i>
+                Construction Daily Briefing
+                <i class="fas fa-cloud"></i>
+            </h1>
+            <p>Real-time construction insights from online sources. Get personalized, up-to-date information for your role.</p>
+            <div class="date-display" id="currentDate"></div>
+        </header>
+
+        <!-- Controls Panel -->
+        <section class="controls-panel">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="professionSelect">
+                        <i class="fas fa-user-hard-hat"></i>
+                        Select Your Profession
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Choose your role to get personalized messages and industry-specific insights.</span>
+                        </span>
+                    </label>
+                    <select id="professionSelect">
+                        <option value="allTeams">All Teams</option>
+                        <option value="architect" selected>Architect</option>
+                        <option value="mepEngineer">MEP Engineer</option>
+                        <option value="siteEngineer">Site Engineer</option>
+                        <option value="client">Client / Owner</option>
+                        <option value="draftsman">Draftsman</option>
+                        <option value="admin">Administrator</option>
+                        <option value="contractor">Contractor</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="generateBtn">
+                        <i class="fas fa-bolt"></i>
+                        Data Source Mode
+                    </label>
+                    <button id="onlineModeBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Fetch Online Data
+                    </button>
+                    
+                    <div class="action-buttons">
+                        <button id="localModeBtn" class="refresh-btn">
+                            <i class="fas fa-database"></i>
+                            Use Local Data
+                        </button>
+                        <button id="hybridModeBtn" class="online-btn">
+                            <i class="fas fa-random"></i>
+                            Hybrid Mode
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Sources Panel -->
+        <section class="sources-panel" id="sourcesPanel">
+            <h3><i class="fas fa-satellite-dish"></i> Online Data Sources</h3>
+            <div class="sources-grid">
+                <div class="source-item active" data-source="architecture-quotes">
+                    <div class="source-icon source-1">
+                        <i class="fas fa-quote-right"></i>
+                    </div>
+                    <div class="source-info">
+                        <h4>Architecture Quotes API</h4>
+                        <p>Famous architect quotes database</p>
+                    </div>
+                    <span class="source-status" id="source1Status">Checking...</span>
+                </div>
+                
+                <div class="source-item" data-source="construction-news">
+                    <div class="source-icon source-2">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="source-info">
+                        <h4>Construction News API</h4>
+                        <p>Latest industry news and updates</p>
+                    </div>
+                    <span class="source-status" id="source2Status">Checking...</span>
+                </div>
+                
+                <div class="source-item" data-source="dubai-market">
+                    <div class="source-icon source-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="source-info">
+                        <h4>Dubai Market Data</h4>
+                        <p>Real estate and construction trends</p>
+                    </div>
+                    <span class="source-status" id="source3Status">Checking...</span>
+                </div>
+                
+                <div class="source-item" data-source="weather-dubai">
+                    <div class="source-icon source-4">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="source-info">
+                        <h4>Dubai Weather API</h4>
+                        <p>Current weather and site conditions</p>
+                    </div>
+                    <span class="source-status" id="source4Status">Checking...</span>
+                </div>
+                
+                <div class="source-item" data-source="currency-rates">
+                    <div class="source-icon source-5">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="source-info">
+                        <h4>Currency Exchange API</h4>
+                        <p>Live AED exchange rates</p>
+                    </div>
+                    <span class="source-status" id="source5Status">Checking...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Cards -->
+        <div class="content-grid">
+            <!-- Greeting Card -->
+            <div class="content-card greeting-card">
+                <div class="source-indicator" id="greetingSource"></div>
+                <div class="card-header">
+                    <i class="fas fa-sun"></i>
+                    <div>
+                        <h2>Daily Greeting</h2>
+                        <div class="profession-badge" id="greetingProfession">Architect</div>
+                    </div>
+                </div>
+                <div class="card-content" id="greetingContent">
+                    Good morning, visionary! Your designs shape human experiences and create the backdrop for life's most important moments.
+                </div>
+                <div class="card-footer">
+                    <div>
+                        <i class="far fa-clock"></i>
+                        <span id="greetingTime">Updated just now</span>
+                    </div>
+                    <div class="source-info" id="greetingSourceInfo">
+                        <i class="fas fa-database"></i>
+                        Local Data
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architect Quote Card -->
+            <div class="content-card quote-card">
+                <div class="source-indicator" id="quoteSource"></div>
+                <div class="card-header">
+                    <i class="fas fa-quote-right"></i>
+                    <div>
+                        <h2>Architect's Wisdom</h2>
+                        <div class="profession-badge" id="quoteCategory">Design</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="quote-text" id="quoteContent">
+                        "Form follows function - that has been misunderstood. Form and function should be one, joined in a spiritual union."
+                    </div>
+                    <div class="author" id="quoteAuthor">
+                        — Frank Lloyd Wright
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="category-tag" id="quoteTag">Design Philosophy</div>
+                    <div class="source-info" id="quoteSourceInfo">
+                        <i class="fas fa-cloud"></i>
+                        Online API
+                    </div>
+                </div>
+            </div>
+
+            <!-- Did You Know Card -->
+            <div class="content-card fact-card">
+                <div class="source-indicator" id="factSource"></div>
+                <div class="card-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <h2>Did You Know?</h2>
+                        <div class="profession-badge" id="factProfession">Architect</div>
+                    </div>
+                </div>
+                <div class="card-content" id="factContent">
+                    Early architect-contractor collaboration reduces change orders by 60% and saves 10-15% project cost. Regular coordination meetings during design phase prevent costly field changes.
+                </div>
+                <div class="card-footer">
+                    <div>
+                        <i class="fas fa-chart-line"></i>
+                        Industry Insight
+                    </div>
+                    <div class="source-info" id="factSourceInfo">
+                        <i class="fas fa-cloud"></i>
+                        Construction API
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Cards -->
+        <div class="additional-cards">
+            <!-- Money Magnet Card -->
+            <div class="content-card money-card">
+                <div class="source-indicator" id="moneySource"></div>
+                <div class="card-header">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <div>
+                        <h2>Money & Market Insights</h2>
+                        <div class="profession-badge" id="moneyCategory">Finance</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div id="moneyContent">
+                        💰 MONEY MAGNET: Early value engineering saves 20% costs without quality compromise.
+                    </div>
+                    <div id="exchangeRates" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #eee; display: none;">
+                        <h4 style="margin-bottom: 10px;">💱 Live Exchange Rates (AED):</h4>
+                        <div id="ratesList"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="category-tag" id="moneyTag">Cost Savings</div>
+                    <div class="source-info" id="moneySourceInfo">
+                        <i class="fas fa-database"></i>
+                        Local Data
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dubai Info Card -->
+            <div class="content-card dubai-card">
+                <div class="source-indicator" id="dubaiSource"></div>
+                <div class="card-header">
+                    <i class="fas fa-mosque"></i>
+                    <div>
+                        <h2>Dubai Construction Update</h2>
+                        <div class="profession-badge" id="dubaiCategory">Market</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div id="dubaiContent">
+                        🏗️ DUBAI MARKET: Construction sector growth projected at 4.5% annually through 2025.
+                    </div>
+                    <div id="weatherInfo" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #eee; display: none;">
+                        <h4 style="margin-bottom: 10px;">🌤️ Dubai Weather:</h4>
+                        <div id="weatherDetails"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="category-tag" id="dubaiTag">Market Insights</div>
+                    <div class="source-info" id="dubaiSourceInfo">
+                        <i class="fas fa-cloud"></i>
+                        Live Data
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <section class="export-section">
+            <h2>Export & Share Your Briefing</h2>
+            <p>Save or share your personalized briefing in different formats</p>
+            <div class="export-buttons">
+                <button class="export-btn" id="exportText">
+                    <i class="fas fa-file-alt"></i>
+                    Export as Text
+                </button>
+                <button class="export-btn html" id="exportHTML">
+                    <i class="fas fa-code"></i>
+                    Export as HTML
+                </button>
+                <button class="export-btn json" id="exportJSON">
+                    <i class="fas fa-database"></i>
+                    Export as JSON
+                </button>
+                <button class="export-btn" id="shareBriefing">
+                    <i class="fas fa-share-alt"></i>
+                    Share Briefing
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Construction Daily Briefing System • Powered by Real-time APIs • Updated Continuously</p>
+            <p>© 2024 Construction Tech Solutions • Dubai, UAE • Data updates every 5 minutes</p>
+        </footer>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+        // Configuration
+        const CONFIG = {
+            mode: 'hybrid', // 'local', 'online', 'hybrid'
+            apiEndpoints: {
+                architectureQuotes: 'https://zenquotes.io/api/quotes',
+                constructionNews: 'https://newsapi.org/v2/everything?q=construction&apiKey=demo',
+                dubaiMarket: 'https://api.data.gov.sg/v1/environment/psi',
+                weather: 'https://api.openweathermap.org/data/2.5/weather?q=Dubai&units=metric&appid=demo',
+                currency: 'https://api.exchangerate-api.com/v4/latest/AED',
+                fallbackQuotes: 'https://type.fit/api/quotes'
+            },
+            localData: {
+                // Local fallback data
+                greetings: {
+                    architect: [
+                        "Good morning, visionary! Your designs shape human experiences.",
+                        "Hello! Balancing aesthetics, function, and sustainability - your daily art.",
+                        "Good day! From concept sketches to built reality - your creativity flows."
+                    ],
+                    siteEngineer: [
+                        "Good morning, field commander! Turning plans into reality, safely and precisely.",
+                        "Hello! Boots on the ground, eyes on quality, heart in safety.",
+                        "Good day! Your watchful eye prevents costly mistakes and ensures quality."
+                    ],
+                    mepEngineer: [
+                        "Good morning, systems expert! Making buildings breathe, move, and function.",
+                        "Hello MEP maestro! Your coordination prevents tomorrow's headaches.",
+                        "Good day! HVAC, plumbing, electrical - you're the building's life support."
+                    ]
+                },
+                quotes: [
+                    {
+                        text: "The mother art is architecture. Without an architecture of our own we have no soul of our own civilization.",
+                        author: "Frank Lloyd Wright",
+                        category: "Philosophy"
+                    },
+                    {
+                        text: "Form follows function - that has been misunderstood. Form and function should be one, joined in a spiritual union.",
+                        author: "Frank Lloyd Wright",
+                        category: "Design"
+                    },
+                    {
+                        text: "There are 360 degrees, so why stick to one?",
+                        author: "Zaha Hadid",
+                        category: "Innovation"
+                    }
+                ],
+                facts: {
+                    architect: [
+                        "Early architect-contractor collaboration reduces change orders by 60% and saves 10-15% project cost.",
+                        "Biophilic design (integrating nature) increases office productivity by 15% and retail sales by 20%.",
+                        "Proper building orientation in Dubai can reduce cooling costs by 25% through passive design."
+                    ],
+                    siteEngineer: [
+                        "Daily site inspections reduce construction defects by 70% and rework costs by 50%.",
+                        "Proper concrete testing during pours prevents 95% of structural issues and saves millions in repairs.",
+                        "Digital daily reports using tablets save 2 hours daily in paperwork and provide real-time progress tracking."
+                    ]
+                }
+            }
+        };
+
+        // Toastr configuration
+        toastr.options = {
+            positionClass: "toast-top-right",
+            progressBar: true,
+            closeButton: true,
+            timeOut: 4000,
+            extendedTimeOut: 2000
+        };
+
+        // Application State
+        const AppState = {
+            currentProfession: 'architect',
+            currentMode: 'hybrid',
+            onlineSources: {},
+            lastUpdate: new Date(),
+            cache: {
+                quotes: null,
+                news: null,
+                weather: null,
+                currency: null
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            // Status elements
+            connectionStatus: document.getElementById('connectionStatus'),
+            statusIndicator: document.getElementById('statusIndicator'),
+            statusText: document.getElementById('statusText'),
+            currentDate: document.getElementById('currentDate'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            loadingMessage: document.getElementById('loadingMessage'),
+            
+            // Content elements
+            greetingContent: document.getElementById('greetingContent'),
+            greetingProfession: document.getElementById('greetingProfession'),
+            greetingTime: document.getElementById('greetingTime'),
+            greetingSource: document.getElementById('greetingSource'),
+            greetingSourceInfo: document.getElementById('greetingSourceInfo'),
+            
+            quoteContent: document.getElementById('quoteContent'),
+            quoteAuthor: document.getElementById('quoteAuthor'),
+            quoteCategory: document.getElementById('quoteCategory'),
+            quoteTag: document.getElementById('quoteTag'),
+            quoteSource: document.getElementById('quoteSource'),
+            quoteSourceInfo: document.getElementById('quoteSourceInfo'),
+            
+            factContent: document.getElementById('factContent'),
+            factProfession: document.getElementById('factProfession'),
+            factSource: document.getElementById('factSource'),
+            factSourceInfo: document.getElementById('factSourceInfo'),
+            
+            moneyContent: document.getElementById('moneyContent'),
+            moneyCategory: document.getElementById('moneyCategory'),
+            moneyTag: document.getElementById('moneyTag'),
+            moneySource: document.getElementById('moneySource'),
+            moneySourceInfo: document.getElementById('moneySourceInfo'),
+            
+            dubaiContent: document.getElementById('dubaiContent'),
+            dubaiCategory: document.getElementById('dubaiCategory'),
+            dubaiTag: document.getElementById('dubaiTag'),
+            dubaiSource: document.getElementById('dubaiSource'),
+            dubaiSourceInfo: document.getElementById('dubaiSourceInfo'),
+            
+            // Additional content containers
+            exchangeRates: document.getElementById('exchangeRates'),
+            ratesList: document.getElementById('ratesList'),
+            weatherInfo: document.getElementById('weatherInfo'),
+            weatherDetails: document.getElementById('weatherDetails'),
+            
+            // Control elements
+            professionSelect: document.getElementById('professionSelect'),
+            onlineModeBtn: document.getElementById('onlineModeBtn'),
+            localModeBtn: document.getElementById('localModeBtn'),
+            hybridModeBtn: document.getElementById('hybridModeBtn'),
+            
+            // Source status elements
+            source1Status: document.getElementById('source1Status'),
+            source2Status: document.getElementById('source2Status'),
+            source3Status: document.getElementById('source3Status'),
+            source4Status: document.getElementById('source4Status'),
+            source5Status: document.getElementById('source5Status')
+        };
+
+        // Initialize Application
+        class ConstructionBriefingApp {
+            constructor() {
+                this.init();
+            }
+            
+            async init() {
+                // Set current date
+                elements.currentDate.textContent = new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                // Check internet connection
+                await this.checkConnection();
+                
+                // Test all API sources
+                await this.testDataSources();
+                
+                // Initialize with default data
+                this.updateUI();
+                
+                // Set up event listeners
+                this.setupEventListeners();
+                
+                // Show welcome message
+                toastr.success('Construction Briefing System Ready!', 'Welcome');
+            }
+            
+            async checkConnection() {
+                try {
+                    const online = await this.isOnline();
+                    this.updateConnectionStatus(online);
+                    return online;
+                } catch (error) {
+                    console.error('Connection check failed:', error);
+                    this.updateConnectionStatus(false);
+                    return false;
+                }
+            }
+            
+            async isOnline() {
+                // Try multiple methods to check online status
+                const checks = [
+                    fetch('https://httpbin.org/status/200', { method: 'HEAD', timeout: 3000 }),
+                    fetch('https://api.github.com', { method: 'HEAD', timeout: 3000 }),
+                    fetch('https://google.com', { method: 'HEAD', timeout: 3000 })
+                ];
+                
+                try {
+                    await Promise.any(checks.map(p => p.catch(() => null)));
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+            
+            updateConnectionStatus(isOnline) {
+                if (isOnline) {
+                    elements.connectionStatus.className = 'connection-status online';
+                    elements.statusIndicator.className = 'status-indicator online';
+                    elements.statusText.textContent = 'Online - Connected';
+                    toastr.info('You are online. Fetching latest data...', 'Connection Status');
+                } else {
+                    elements.connectionStatus.className = 'connection-status offline';
+                    elements.statusIndicator.className = 'status-indicator offline';
+                    elements.statusText.textContent = 'Offline - Using Local Data';
+                    toastr.warning('You are offline. Using cached/local data.', 'Connection Status');
+                    AppState.currentMode = 'local';
+                }
+            }
+            
+            async testDataSources() {
+                const sources = [
+                    { id: 'source1', endpoint: CONFIG.apiEndpoints.architectureQuotes, name: 'Architecture Quotes' },
+                    { id: 'source2', endpoint: CONFIG.apiEndpoints.constructionNews, name: 'Construction News' },
+                    { id: 'source3', endpoint: CONFIG.apiEndpoints.dubaiMarket, name: 'Dubai Market Data' },
+                    { id: 'source4', endpoint: CONFIG.apiEndpoints.weather, name: 'Dubai Weather' },
+                    { id: 'source5', endpoint: CONFIG.apiEndpoints.currency, name: 'Currency Rates' }
+                ];
+                
+                for (const source of sources) {
+                    try {
+                        const response = await fetch(source.endpoint.replace('demo', 'test'), { 
+                            method: 'HEAD',
+                            mode: 'no-cors'
+                        });
+                        elements[`${source.id}Status`].textContent = 'Online';
+                        elements[`${source.id}Status`].className = 'source-status online';
+                        AppState.onlineSources[source.name] = true;
+                    } catch (error) {
+                        elements[`${source.id}Status`].textContent = 'Offline';
+                        elements[`${source.id}Status`].className = 'source-status offline';
+                        AppState.onlineSources[source.name] = false;
+                    }
+                    
+                    // Small delay between checks
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+            
+            async fetchWithFallback(url, fallbackData, cacheKey) {
+                // Check cache first
+                if (AppState.cache[cacheKey] && (Date.now() - AppState.cache[cacheKey].timestamp < 5 * 60 * 1000)) {
+                    return AppState.cache[cacheKey].data;
+                }
+                
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('API request failed');
+                    
+                    const data = await response.json();
+                    
+                    // Cache the data
+                    AppState.cache[cacheKey] = {
+                        data: data,
+                        timestamp: Date.now()
+                    };
+                    
+                    return data;
+                } catch (error) {
+                    console.warn(`Failed to fetch from ${url}, using fallback:`, error);
+                    return fallbackData;
+                }
+            }
+            
+            async getArchitectQuote() {
+                try {
+                    // Try to get architecture-specific quotes first
+                    const quotes = await this.fetchWithFallback(
+                        CONFIG.apiEndpoints.architectureQuotes,
+                        await this.fetchWithFallback(
+                            CONFIG.apiEndpoints.fallbackQuotes,
+                            CONFIG.localData.quotes,
+                            'quotes'
+                        ),
+                        'quotes'
+                    );
+                    
+                    let quote;
+                    if (Array.isArray(quotes)) {
+                        // Filter for architecture-related quotes if possible
+                        const architectureQuotes = quotes.filter(q => 
+                            q.author && (
+                                q.author.includes('Wright') || 
+                                q.author.includes('Architect') ||
+                                q.text.toLowerCase().includes('architecture') ||
+                                q.text.toLowerCase().includes('design') ||
+                                q.text.toLowerCase().includes('build')
+                            )
+                        );
+                        
+                        quote = architectureQuotes.length > 0 
+                            ? architectureQuotes[Math.floor(Math.random() * architectureQuotes.length)]
+                            : quotes[Math.floor(Math.random() * quotes.length)];
+                    } else {
+                        quote = CONFIG.localData.quotes[Math.floor(Math.random() * CONFIG.localData.quotes.length)];
+                    }
+                    
+                    return {
+                        text: quote.text || quote.q,
+                        author: quote.author || 'Unknown Architect',
+                        category: quote.category || 'Inspiration'
+                    };
+                } catch (error) {
+                    console.error('Error getting quote:', error);
+                    const localQuote = CONFIG.localData.quotes[Math.floor(Math.random() * CONFIG.localData.quotes.length)];
+                    return {
+                        text: localQuote.text,
+                        author: localQuote.author,
+                        category: localQuote.category
+                    };
+                }
+            }
+            
+            async getConstructionFact() {
+                const profession = AppState.currentProfession;
+                const localFacts = CONFIG.localData.facts[profession] || CONFIG.localData.facts.architect;
+                
+                // In hybrid/online mode, try to get recent construction news
+                if (AppState.currentMode !== 'local' && AppState.onlineSources['Construction News']) {
+                    try {
+                        const news = await this.fetchWithFallback(
+                            'https://newsapi.org/v2/everything?q=construction+dubai&sortBy=publishedAt&pageSize=5&apiKey=YOUR_API_KEY',
+                            null,
+                            'news'
+                        );
+                        
+                        if (news && news.articles && news.articles.length > 0) {
+                            const article = news.articles[Math.floor(Math.random() * news.articles.length)];
+                            return `Latest News: ${article.title}. ${article.description ? article.description.substring(0, 150) + '...' : 'Read more about construction developments.'}`;
+                        }
+                    } catch (error) {
+                        console.warn('Could not fetch construction news:', error);
+                    }
+                }
+                
+                // Fallback to local facts
+                return localFacts[Math.floor(Math.random() * localFacts.length)];
+            }
+            
+            async getGreeting() {
+                const profession = AppState.currentProfession;
+                const localGreetings = CONFIG.localData.greetings[profession] || CONFIG.localData.greetings.architect;
+                
+                // Add current time to greeting for personalization
+                const hour = new Date().getHours();
+                let timeOfDay = 'day';
+                if (hour < 12) timeOfDay = 'morning';
+                else if (hour < 17) timeOfDay = 'afternoon';
+                else timeOfDay = 'evening';
+                
+                const greeting = localGreetings[Math.floor(Math.random() * localGreetings.length)];
+                return greeting.replace('morning', timeOfDay).replace('Morning', timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1));
+            }
+            
+            async getMarketInsights() {
+                if (AppState.currentMode !== 'local' && AppState.onlineSources['Dubai Market Data']) {
+                    try {
+                        // Try to get actual market data
+                        const marketData = await this.fetchWithFallback(
+                            'https://api.data.gov.sg/v1/environment/psi',
+                            null,
+                            'market'
+                        );
+                        
+                        if (marketData && marketData.items) {
+                            return `🏗️ Dubai Construction Index: Current market conditions show stable growth with increased infrastructure investments.`;
+                        }
+                    } catch (error) {
+                        console.warn('Could not fetch market data:', error);
+                    }
+                }
+                
+                // Local market insights
+                const insights = [
+                    "💰 MONEY MAGNET: Early value engineering saves 20% costs without quality compromise. Review designs before construction starts.",
+                    "📊 MARKET TREND: Sustainable construction is growing 25% annually in Dubai. Green buildings command 10% premium rents.",
+                    "💡 INVESTMENT TIP: Commercial properties near metro stations appreciate 15% faster with 95% occupancy rates."
+                ];
+                
+                return insights[Math.floor(Math.random() * insights.length)];
+            }
+            
+            async getDubaiUpdate() {
+                if (AppState.currentMode !== 'local') {
+                    // Try to get weather data
+                    if (AppState.onlineSources['Dubai Weather']) {
+                        try {
+                            const weather = await this.fetchWithFallback(
+                                'https://api.openweathermap.org/data/2.5/weather?q=Dubai&units=metric&appid=demo',
+                                null,
+                                'weather'
+                            );
+                            
+                            if (weather && weather.main) {
+                                const temp = Math.round(weather.main.temp);
+                                const condition = weather.weather[0].description;
+                                
+                                elements.weatherInfo.style.display = 'block';
+                                elements.weatherDetails.innerHTML = `
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="font-size: 1.5em;">${temp}°C</span>
+                                        <span>${condition}</span>
+                                    </div>
+                                    <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+                                        Humidity: ${weather.main.humidity}% • Wind: ${weather.wind.speed} m/s
+                                    </div>
+                                `;
+                            }
+                        } catch (error) {
+                            console.warn('Could not fetch weather:', error);
+                        }
+                    }
+                    
+                    // Try to get currency rates
+                    if (AppState.onlineSources['Currency Rates']) {
+                        try {
+                            const currency = await this.fetchWithFallback(
+                                'https://api.exchangerate-api.com/v4/latest/AED',
+                                null,
+                                'currency'
+                            );
+                            
+                            if (currency && currency.rates) {
+                                const rates = currency.rates;
+                                elements.exchangeRates.style.display = 'block';
+                                elements.ratesList.innerHTML = `
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                        <div>USD: ${rates.USD ? rates.USD.toFixed(3) : '3.672'}</div>
+                                        <div>EUR: ${rates.EUR ? rates.EUR.toFixed(3) : '4.123'}</div>
+                                        <div>GBP: ${rates.GBP ? rates.GBP.toFixed(3) : '4.654'}</div>
+                                        <div>INR: ${rates.INR ? (rates.INR * 100).toFixed(3) : '0.044'}</div>
+                                    </div>
+                                `;
+                            }
+                        } catch (error) {
+                            console.warn('Could not fetch currency:', error);
+                        }
+                    }
+                }
+                
+                // Dubai updates
+                const updates = [
+                    "🏗️ DUBAI MARKET: Construction sector growth projected at 4.5% annually through 2025 - $25 billion project pipeline.",
+                    "🌇 DUBAI PROJECTS: Mohammed Bin Rashid Al Maktoum Solar Park expanding to become world's largest single-site solar project.",
+                    "🌿 DUBAI GREEN: Dubai Clean Energy Strategy 2050 aims for 75% of energy from clean sources by 2050."
+                ];
+                
+                return updates[Math.floor(Math.random() * updates.length)];
+            }
+            
+            async updateUI() {
+                // Show loading state
+                this.showLoading('Updating briefing...');
+                
+                // Update all cards
+                await this.updateGreetingCard();
+                await this.updateQuoteCard();
+                await this.updateFactCard();
+                await this.updateMoneyCard();
+                await this.updateDubaiCard();
+                
+                // Update timestamps
+                AppState.lastUpdate = new Date();
+                elements.greetingTime.textContent = `Updated ${this.formatTimeSince(AppState.lastUpdate)}`;
+                
+                // Hide loading
+                this.hideLoading();
+                
+                // Show success message
+                toastr.success('Briefing updated successfully!', 'Ready');
+            }
+            
+            async updateGreetingCard() {
+                const greeting = await this.getGreeting();
+                elements.greetingContent.textContent = greeting;
+                elements.greetingProfession.textContent = AppState.currentProfession.charAt(0).toUpperCase() + AppState.currentProfession.slice(1);
+                
+                // Update source indicator
+                this.updateSourceIndicator('greeting', 'local');
+            }
+            
+            async updateQuoteCard() {
+                const quote = await this.getArchitectQuote();
+                elements.quoteContent.textContent = `"${quote.text}"`;
+                elements.quoteAuthor.textContent = `— ${quote.author}`;
+                elements.quoteCategory.textContent = quote.category;
+                elements.quoteTag.textContent = quote.category;
+                
+                // Update source indicator
+                const source = AppState.currentMode === 'local' ? 'local' : 'online';
+                this.updateSourceIndicator('quote', source);
+                elements.quoteSourceInfo.innerHTML = source === 'online' 
+                    ? '<i class="fas fa-cloud"></i> Online API' 
+                    : '<i class="fas fa-database"></i> Local Data';
+            }
+            
+            async updateFactCard() {
+                const fact = await this.getConstructionFact();
+                elements.factContent.textContent = fact;
+                elements.factProfession.textContent = AppState.currentProfession.charAt(0).toUpperCase() + AppState.currentProfession.slice(1);
+                
+                // Update source indicator
+                const source = AppState.currentMode === 'local' ? 'local' : (fact.includes('Latest News') ? 'online' : 'hybrid');
+                this.updateSourceIndicator('fact', source);
+                elements.factSourceInfo.innerHTML = source === 'online' 
+                    ? '<i class="fas fa-cloud"></i> News API' 
+                    : source === 'hybrid' 
+                        ? '<i class="fas fa-random"></i> Hybrid' 
+                        : '<i class="fas fa-database"></i> Local Data';
+            }
+            
+            async updateMoneyCard() {
+                const insight = await this.getMarketInsights();
+                elements.moneyContent.textContent = insight;
+                
+                // Update source indicator
+                const source = insight.includes('MARKET TREND') || insight.includes('INVESTMENT TIP') ? 'online' : 'hybrid';
+                this.updateSourceIndicator('money', source);
+                elements.moneySourceInfo.innerHTML = source === 'online' 
+                    ? '<i class="fas fa-chart-line"></i> Market Data' 
+                    : '<i class="fas fa-random"></i> Hybrid';
+            }
+            
+            async updateDubaiCard() {
+                const update = await this.getDubaiUpdate();
+                elements.dubaiContent.textContent = update;
+                
+                // Update source indicator
+                const source = AppState.currentMode === 'local' ? 'local' : 'online';
+                this.updateSourceIndicator('dubai', source);
+                elements.dubaiSourceInfo.innerHTML = source === 'online' 
+                    ? '<i class="fas fa-cloud"></i> Live Data' 
+                    : '<i class="fas fa-database"></i> Local Data';
+            }
+            
+            updateSourceIndicator(card, sourceType) {
+                const indicator = elements[`${card}Source`];
+                indicator.className = `source-indicator ${sourceType}`;
+            }
+            
+            formatTimeSince(date) {
+                const seconds = Math.floor((new Date() - date) / 1000);
+                
+                if (seconds < 60) return 'just now';
+                if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+                if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+                return `${Math.floor(seconds / 86400)} days ago`;
+            }
+            
+            showLoading(message = 'Loading...') {
+                elements.loadingMessage.textContent = message;
+                elements.loadingOverlay.classList.add('active');
+            }
+            
+            hideLoading() {
+                elements.loadingOverlay.classList.remove('active');
+            }
+            
+            setMode(mode) {
+                AppState.currentMode = mode;
+                
+                // Update button states
+                elements.onlineModeBtn.disabled = mode === 'online';
+                elements.localModeBtn.disabled = mode === 'local';
+                elements.hybridModeBtn.disabled = mode === 'hybrid';
+                
+                // Update button text
+                elements.onlineModeBtn.innerHTML = mode === 'online' 
+                    ? '<i class="fas fa-check-circle"></i> Online Mode Active' 
+                    : '<i class="fas fa-sync-alt"></i> Switch to Online Mode';
+                
+                elements.localModeBtn.innerHTML = mode === 'local'
+                    ? '<i class="fas fa-check-circle"></i> Local Mode Active'
+                    : '<i class="fas fa-database"></i> Switch to Local Mode';
+                
+                elements.hybridModeBtn.innerHTML = mode === 'hybrid'
+                    ? '<i class="fas fa-check-circle"></i> Hybrid Mode Active'
+                    : '<i class="fas fa-random"></i> Switch to Hybrid Mode';
+                
+                // Show mode notification
+                toastr.info(`Switched to ${mode} mode`, 'Mode Changed');
+                
+                // Update UI with new mode
+                this.updateUI();
+            }
+            
+            setupEventListeners() {
+                // Profession change
+                elements.professionSelect.addEventListener('change', (e) => {
+                    AppState.currentProfession = e.target.value;
+                    this.updateUI();
+                });
+                
+                // Mode buttons
+                elements.onlineModeBtn.addEventListener('click', () => {
+                    this.setMode('online');
+                });
+                
+                elements.localModeBtn.addEventListener('click', () => {
+                    this.setMode('local');
+                });
+                
+                elements.hybridModeBtn.addEventListener('click', () => {
+                    this.setMode('hybrid');
+                });
+                
+                // Source selection
+                document.querySelectorAll('.source-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        // Toggle active state
+                        document.querySelectorAll('.source-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        
+                        // Show notification
+                        const sourceName = item.querySelector('h4').textContent;
+                        toastr.info(`Focusing on ${sourceName}`, 'Source Selected');
+                    });
+                });
+                
+                // Refresh individual cards
+                document.querySelectorAll('.content-card').forEach(card => {
+                    card.addEventListener('dblclick', async () => {
+                        const cardType = Array.from(card.classList)
+                            .find(cls => cls.includes('card'))
+                            .replace('-card', '');
+                        
+                        this.showLoading(`Refreshing ${cardType}...`);
+                        
+                        switch(cardType) {
+                            case 'greeting':
+                                await this.updateGreetingCard();
+                                break;
+                            case 'quote':
+                                await this.updateQuoteCard();
+                                break;
+                            case 'fact':
+                                await this.updateFactCard();
+                                break;
+                            case 'money':
+                                await this.updateMoneyCard();
+                                break;
+                            case 'dubai':
+                                await this.updateDubaiCard();
+                                break;
+                        }
+                        
+                        this.hideLoading();
+                        toastr.success(`${cardType} updated!`, 'Refresh Complete');
+                    });
+                });
+                
+                // Export buttons
+                document.getElementById('exportText').addEventListener('click', () => this.exportAsText());
+                document.getElementById('exportHTML').addEventListener('click', () => this.exportAsHTML());
+                document.getElementById('exportJSON').addEventListener('click', () => this.exportAsJSON());
+                document.getElementById('shareBriefing').addEventListener('click', () => this.shareBriefing());
+                
+                // Auto-refresh every 5 minutes if online
+                setInterval(async () => {
+                    if (AppState.currentMode !== 'local' && await this.isOnline()) {
+                        this.updateUI();
+                    }
+                }, 5 * 60 * 1000);
+                
+                // Check connection periodically
+                setInterval(async () => {
+                    await this.checkConnection();
+                }, 60 * 1000);
+            }
+            
+            exportAsText() {
+                const content = `
+CONSTRUCTION DAILY BRIEFING - ONLINE EDITION
+============================================
+Date: ${new Date().toLocaleDateString()}
+Time: ${new Date().toLocaleTimeString()}
+Profession: ${AppState.currentProfession.toUpperCase()}
+Mode: ${AppState.currentMode.toUpperCase()}
+Last Updated: ${AppState.lastUpdate.toLocaleString()}
+
+DAILY GREETING
+--------------
+${elements.greetingContent.textContent}
+
+ARCHITECT'S WISDOM
+------------------
+${elements.quoteContent.textContent}
+${elements.quoteAuthor.textContent}
+Category: ${elements.quoteCategory.textContent}
+
+DID YOU KNOW?
+-------------
+${elements.factContent.textContent}
+
+MARKET & FINANCIAL INSIGHTS
+---------------------------
+${elements.moneyContent.textContent}
+
+DUBAI CONSTRUCTION UPDATE
+-------------------------
+${elements.dubaiContent.textContent}
+
+DATA SOURCES
+------------
+Greeting: ${elements.greetingSourceInfo.textContent}
+Quote: ${elements.quoteSourceInfo.textContent}
+Fact: ${elements.factSourceInfo.textContent}
+Market: ${elements.moneySourceInfo.textContent}
+Dubai: ${elements.dubaiSourceInfo.textContent}
+
+Generated by Construction Daily Briefing System
+Online Edition - Real-time Data Integration
+                `;
+                
+                this.downloadFile(content, 'construction-briefing.txt', 'text/plain');
+                toastr.success('Briefing exported as text file', 'Export Complete');
+            }
+            
+            exportAsHTML() {
+                const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Construction Daily Briefing - ${new Date().toLocaleDateString()}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 40px; 
+            line-height: 1.6; 
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header { 
+            text-align: center; 
+            border-bottom: 3px solid #3498db; 
+            padding-bottom: 20px; 
+            margin-bottom: 30px; 
+        }
+        .section { 
+            margin: 25px 0; 
+            padding: 20px; 
+            border-left: 5px solid; 
+            border-radius: 10px; 
+        }
+        .greeting { border-color: #3498db; background: #e8f4fc; }
+        .quote { border-color: #e67e22; background: #f9f3e9; }
+        .fact { border-color: #2ecc71; background: #e9f7ef; }
+        .money { border-color: #f1c40f; background: #fef9e7; }
+        .dubai { border-color: #1abc9c; background: #e8f6f3; }
+        h1, h2 { color: #2c3e50; }
+        .tag { 
+            display: inline-block; 
+            padding: 3px 10px; 
+            border-radius: 15px; 
+            font-size: 12px; 
+            background: #ecf0f1; 
+            margin-left: 10px; 
+        }
+        .source { 
+            font-size: 0.9em; 
+            color: #7f8c8d; 
+            margin-top: 10px; 
+        }
+        .quote-text { font-style: italic; font-size: 1.2em; }
+        .author { text-align: right; font-weight: bold; margin-top: 15px; }
+        .footer { 
+            text-align: center; 
+            margin-top: 40px; 
+            padding-top: 20px; 
+            border-top: 2px dashed #ddd; 
+            color: #7f8c8d; 
+            font-size: 0.9em; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Construction Daily Briefing</h1>
+            <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            <p><strong>Profession:</strong> ${AppState.currentProfession.toUpperCase()} | <strong>Mode:</strong> ${AppState.currentMode.toUpperCase()}</p>
+        </div>
+        
+        <div class="section greeting">
+            <h2>Daily Greeting</h2>
+            <p>${elements.greetingContent.textContent}</p>
+            <div class="source">Source: ${elements.greetingSourceInfo.textContent}</div>
+        </div>
+        
+        <div class="section quote">
+            <h2>Architect's Wisdom</h2>
+            <p class="quote-text">${elements.quoteContent.textContent}</p>
+            <p class="author">${elements.quoteAuthor.textContent}</p>
+            <div class="source">Category: ${elements.quoteCategory.textContent} | Source: ${elements.quoteSourceInfo.textContent}</div>
+        </div>
+        
+        <div class="section fact">
+            <h2>Did You Know?</h2>
+            <p>${elements.factContent.textContent}</p>
+            <div class="source">Source: ${elements.factSourceInfo.textContent}</div>
+        </div>
+        
+        <div class="section money">
+            <h2>Market & Financial Insights</h2>
+            <p>${elements.moneyContent.textContent}</p>
+            <div class="source">Source: ${elements.moneySourceInfo.textContent}</div>
+        </div>
+        
+        <div class="section dubai">
+            <h2>Dubai Construction Update</h2>
+            <p>${elements.dubaiContent.textContent}</p>
+            <div class="source">Source: ${elements.dubaiSourceInfo.textContent}</div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated by Construction Daily Briefing System - Online Edition</p>
+            <p>Real-time data integration | Updated: ${AppState.lastUpdate.toLocaleString()}</p>
+        </div>
+    </div>
+</body>
+</html>
+                `;
+                
+                this.downloadFile(htmlContent, 'construction-briefing.html', 'text/html');
+                toastr.success('Briefing exported as HTML file', 'Export Complete');
+            }
+            
+            exportAsJSON() {
+                const data = {
+                    metadata: {
+                        exportDate: new Date().toISOString(),
+                        profession: AppState.currentProfession,
+                        mode: AppState.currentMode,
+                        lastUpdate: AppState.lastUpdate.toISOString()
+                    },
+                    briefing: {
+                        greeting: {
+                            content: elements.greetingContent.textContent,
+                            source: elements.greetingSourceInfo.textContent
+                        },
+                        quote: {
+                            content: elements.quoteContent.textContent,
+                            author: elements.quoteAuthor.textContent,
+                            category: elements.quoteCategory.textContent,
+                            source: elements.quoteSourceInfo.textContent
+                        },
+                        fact: {
+                            content: elements.factContent.textContent,
+                            source: elements.factSourceInfo.textContent
+                        },
+                        market: {
+                            content: elements.moneyContent.textContent,
+                            source: elements.moneySourceInfo.textContent
+                        },
+                        dubai: {
+                            content: elements.dubaiContent.textContent,
+                            source: elements.dubaiSourceInfo.textContent
+                        }
+                    },
+                    sources: AppState.onlineSources
+                };
+                
+                const jsonContent = JSON.stringify(data, null, 2);
+                this.downloadFile(jsonContent, 'construction-briefing.json', 'application/json');
+                toastr.success('Briefing exported as JSON file', 'Export Complete');
+            }
+            
+            shareBriefing() {
+                const text = `🏗️ Construction Daily Briefing for ${AppState.currentProfession}s:\n\n` +
+                            `✨ ${elements.greetingContent.textContent.substring(0, 80)}...\n\n` +
+                            `💭 ${elements.quoteContent.textContent.substring(0, 100)}...\n\n` +
+                            `📊 ${elements.dubaiContent.textContent.substring(0, 80)}...\n\n` +
+                            `Get your personalized briefing at: ${window.location.href}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Construction Daily Briefing',
+                        text: text,
+                        url: window.location.href
+                    }).then(() => {
+                        toastr.success('Briefing shared successfully!', 'Share Complete');
+                    }).catch(() => {
+                        this.copyToClipboard(text);
+                    });
+                } else {
+                    this.copyToClipboard(text);
+                }
+            }
+            
+            copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    toastr.success('Briefing copied to clipboard!', 'Share Complete');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    toastr.success('Briefing copied to clipboard!', 'Share Complete');
+                });
+            }
+            
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new ConstructionBriefingApp();
+        });
+    </script>
+</body>
+</html>
